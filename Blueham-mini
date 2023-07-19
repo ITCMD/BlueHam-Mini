@@ -1,0 +1,37 @@
+#include "BluetoothSerial.h"
+
+BluetoothSerial SerialBT;
+unsigned long previousMillis = 0;
+const long interval = 1000;
+bool sendData = true;
+
+void setup() {
+  Serial.begin(115200);
+  SerialBT.begin("Blueham Mini");
+}
+
+void loop() {
+  // Full-duplex communication
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
+  }
+  if (SerialBT.available()) {
+    Serial.write(SerialBT.read());
+  }
+
+  // Half-duplex communication
+  unsigned long currentMillis = millis();
+  if (currentMillis - previousMillis >= interval) {
+    previousMillis = currentMillis;
+    sendData = !sendData;
+  }
+  if (sendData) {
+    if (Serial.available()) {
+      SerialBT.write(Serial.read());
+    }
+  } else {
+    if (SerialBT.available()) {
+      Serial.write(SerialBT.read());
+    }
+  }
+}
