@@ -1,0 +1,51 @@
+#include "BluetoothSerial.h"
+#include <Wire.h>
+#include <Adafruit_GFX.h>
+#include <Adafruit_SSD1306.h>
+
+#define SCREEN_WIDTH 128
+#define SCREEN_HEIGHT 64
+#define OLED_RESET -1
+
+Adafruit_SSD1306 display(SCREEN_WIDTH, SCREEN_HEIGHT, &Wire, OLED_RESET);
+BluetoothSerial SerialBT;
+
+void setup() {
+  Serial.begin(115200);
+  SerialBT.begin("Blueham Mini");
+
+  if (!display.begin(SSD1306_SWITCHCAPVCC, 0x3C)) {
+    Serial.println(F("SSD1306 allocation failed"));
+    for (;;);
+  }
+  display.clearDisplay();
+  display.setTextSize(1);
+  display.setTextColor(WHITE);
+  display.setCursor(0, 0);
+  display.println("Blueham Mini by W1BTR");
+  display.println("---------------------");
+  display.println("Bluetooth SSID:");
+  display.println(SerialBT.name());
+  display.display();
+}
+
+void loop() {
+  // Full-duplex communication
+  if (Serial.available()) {
+    SerialBT.write(Serial.read());
+  }
+  if (SerialBT.available()) {
+    Serial.write(SerialBT.read());
+  }
+
+  // Half-duplex communication
+  if (digitalRead(4) == HIGH) {
+    if (Serial.available()) {
+      SerialBT.write(Serial.read());
+    }
+  } else {
+    if (SerialBT.available()) {
+      Serial.write(SerialBT.read());
+    }
+  }
+}
